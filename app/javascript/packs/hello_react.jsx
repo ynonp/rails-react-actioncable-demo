@@ -6,7 +6,12 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import Feed from './feed';
 
+import Routes from '../js-routes.js.erb';
+
 const posts = JSON.parse(document.querySelector('#state').dataset.state).posts;
+
+console.log(Routes);
+
 
 document.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(
