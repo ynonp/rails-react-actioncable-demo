@@ -7,41 +7,35 @@ class PostsTest < ApplicationSystemTestCase
 
   test "visiting the index" do
     visit posts_url
-    assert_selector "h1", text: "Posts"
+    assert_selector('li', text: 'MyText', count: 2)
   end
 
-  test "creating a Post" do
-    visit posts_url
-    click_on "New Post"
-
-    fill_in "Color", with: @post.color
-    fill_in "Text", with: @post.text
-    fill_in "User", with: @post.user_id
-    click_on "Create Post"
-
-    assert_text "Post was successfully created"
-    click_on "Back"
-  end
-
-  test "updating a Post" do
-    visit posts_url
-    click_on "Edit", match: :first
-
-    fill_in "Color", with: @post.color
-    fill_in "Text", with: @post.text
-    fill_in "User", with: @post.user_id
-    click_on "Update Post"
-
-    assert_text "Post was successfully updated"
-    click_on "Back"
-  end
-
-  test "destroying a Post" do
-    visit posts_url
-    page.accept_confirm do
-      click_on "Destroy", match: :first
+  test 'create a post and see it added live' do
+    in_browser(:one) do
+      signin_as('joe@gmail.com', '102030')
+      visit posts_url
     end
 
-    assert_text "Post was successfully destroyed"
+    in_browser(:two) do
+      signin_as('jane@gmail.com', '102030')
+      visit posts_url
+    end
+
+    in_browser(:one) do
+      click_on 'Create Post'
+      fill_in :post_text, with: '123'
+      find('input[type="submit"]').click
+    end
+
+    in_browser(:two) do
+      assert_selector('li', text: '123')
+    end
+  end
+
+  def signin_as(email, password)
+    visit new_user_session_path
+    fill_in :user_email, with: email
+    fill_in :user_password, with: password
+    find('input[type="submit"]').click
   end
 end
