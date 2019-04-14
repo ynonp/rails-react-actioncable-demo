@@ -2,20 +2,43 @@
 // like app/views/layouts/application.html.erb. All it does is render <div>Hello React</div> at the bottom
 // of the page.
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 import Feed from './feed';
 
 import Routes from '../js-routes.js.erb';
 
-const posts = JSON.parse(document.querySelector('#state').dataset.state).posts;
+const initialPosts = JSON.parse(document.querySelector('#state').dataset.state).posts;
 
 console.log(Routes);
 
+window.Cable = ActionCable.createConsumer();
+
+function App(props) {
+  const [ posts, setPosts ] = useState(initialPosts);
+  console.log(posts);
+  useEffect(function() {
+    const subscription = Cable.subscriptions.create("FeedChannel", {
+      received(data) {
+        console.log('---');
+        console.log(data);
+        setPosts(data);
+      }
+    });
+
+    return function() {
+      Cable.subscriptions.remove(subscription);
+    }
+  }, []);
+
+  return (
+    <Feed posts={posts} />
+  )
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(
-    <Feed posts={posts} />,
+    <App />,
     document.body.appendChild(document.createElement('div')),
   )
 })

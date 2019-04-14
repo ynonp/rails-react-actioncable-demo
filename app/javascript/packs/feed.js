@@ -5,7 +5,7 @@ export default function Feed({ posts }) {
   return (
     <ul>
       {posts.map(attributes => (
-        <Post {...attributes} />
+        <Post {...attributes} key={attributes.id}/>
       ))}
     </ul>
   )

@@ -6,11 +6,7 @@ class PostsController < ApplicationController
   # GET /posts.json
   def index
     @posts = Post.all
-    @state[:posts] = Post.all.joins(:user).select(
-                                              "users.email as 'from'",
-                                              "posts.text",
-                                              "posts.color"
-    )
+    @state[:posts] = all_posts
   end
 
   # GET /posts/1
@@ -34,6 +30,7 @@ class PostsController < ApplicationController
 
     respond_to do |format|
       if @post.save
+        ActionCable.server.broadcast('feed', all_posts)
         format.html { redirect_to @post, notice: 'Post was successfully created.' }
         format.json { render :show, status: :created, location: @post }
       else
@@ -70,7 +67,16 @@ class PostsController < ApplicationController
 private
   # Use callbacks to share common setup or constraints between actions.
   def set_post
-    @post = Post.find(params[:id])
+    @post = Post.find_by(id: params[:id], user: current_user)
+  end
+
+  def all_posts
+    Post.all.joins(:user).select(
+        "posts.id as id",
+        "users.email as 'from'",
+        "posts.text",
+        "posts.color"
+    )
   end
 
   # Never trust parameters from the scary internet, only allow the white list through.
